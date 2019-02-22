@@ -1,6 +1,7 @@
 package log
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"time"
@@ -17,6 +18,11 @@ func NewMyLogger(cfg *Config) *MyLogger {
 }
 
 func (l *MyLogger) Log(tag string, msg interface{}, time time.Time) error {
-	log.Printf("[%s] %v", tag, msg)
+	entry, err := json.Marshal(msg)
+	if err != nil {
+		log.Printf("[%s] %v", tag, msg)
+	} else {
+		log.Printf("[%s] %v", tag, string(entry))
+	}
 	return nil
 }
