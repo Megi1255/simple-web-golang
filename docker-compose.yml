@@ -1,0 +1,95 @@
+version: "2.0"
+
+services:
+#  elasticsearch:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile-elasticsearch
+#    environment:
+#      - cluster.name=docker-cluster
+#      - bootstrap.memory_lock=true
+#      - xpack.security.enabled=false
+#      - transport.host=127.0.0.1
+#      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+#    ulimits:
+#      memlock:
+#        soft: -1
+#        hard: -1
+#      nofile:
+#        soft: 65536
+#        hard: 65536
+#    mem_limit: 1g
+#    cap_add:
+#      - IPC_LOCK
+#    volumes:
+#      - esdata:/usr/share/elasticsearch/data
+#    ports:
+#      - 9200:9200
+#  kibana:
+#    image: docker.elastic.co/kibana/kibana:5.4.3
+#    environment:
+#      - ELASTICSEARCH_URL=http://elasticsearch:9200
+#      - XPACK_SECURITY_ENABLED=false
+#    ports:
+#      - 5601:5601
+#  fluentd:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile-fluentd
+#    volumes:
+#      - ./_fluentd/etc:/fluentd/etc
+#      - nginxlog:/var/log/nginx:ro
+#    environment:
+#      - FLUENTD_CONF=fluent.conf
+#    ports:
+#      - 24224:24224
+  redis:
+    image: redis:5
+    ports:
+      - 6379:6379
+    volumes:
+      - redisdata:/data
+  db:
+    image: mysql:5.7
+    volumes:
+      - dbdata:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: gin
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - 3306:3306
+  nginx:
+    image: nginx:1.15
+    volumes:
+      - ./_nginx/etc/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginxlog:/var/log/nginx
+    ports:
+      - 80:80
+#  go:
+#    build:
+#      context: .
+#    environment:
+#        DB_USER: user
+#        DB_HOST: db
+#        DB_NAME: gin
+#        DB_PASSWORD: password
+#    volumes:
+#      - ./src:/go/src
+#    links:
+#      - db
+#      - redis
+#    ports:
+#      - 8080:8080
+
+volumes:
+  esdata:
+    driver: local
+  nginxlog:
+    driver: local
+  dbdata:
+    driver: local
+  redisdata:
+    driver: local
