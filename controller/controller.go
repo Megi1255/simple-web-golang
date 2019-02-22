@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"ginsample/cache"
-	"ginsample/config"
-	"ginsample/log"
-	"ginsample/storage"
 	"github.com/gin-gonic/gin"
+	"simple-web-golang/cache"
+	"simple-web-golang/config"
+	"simple-web-golang/log"
+	"simple-web-golang/storage"
 	"time"
 )
 
@@ -28,8 +28,9 @@ func Setup(cfg *config.Config) gin.HandlerFunc {
 	var redis cache.Cache
 	var logg log.Logger
 	db = storage.New(cfg.Db)
-	redis = cache.New(cfg.Redis)
-	logg = log.New(cfg.Logger)
+	redis = cache.New(cfg.Cache)
+	//logg = log.New(cfg.Logger)
+	logg = log.NewMyLogger(cfg.Logger)
 
 	return func(c *gin.Context) {
 		c.Set(KeyConfig, cfg)

@@ -3,13 +3,13 @@ package service
 import (
 	"errors"
 	"fmt"
-	"ginsample/config"
-	"ginsample/controller"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"log"
 	"net/http"
 	"reflect"
+	"simple-web-golang/config"
+	"simple-web-golang/controller"
 )
 
 var (
@@ -23,7 +23,7 @@ type App struct {
 func New(cname string) *App {
 	cfg, err := config.Load(cname)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	return &App{Config: cfg}
 }

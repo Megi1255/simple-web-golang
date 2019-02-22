@@ -4,9 +4,9 @@ create table user (
     email varchar(128) not null,
     salt varchar(256),
     salted varchar(256),
-    created timestamp not null default '1970-01-01 00:00:01',
-    updated timestamp default '1970-01-01 00:00:01',
-    last_login timestamp default '1970-01-01 00:00:01'
+    created bigint not null,
+    updated bigint,
+    last_login bigint
 );
 
 create table follow (

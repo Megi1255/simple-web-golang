@@ -19,21 +19,12 @@ func BodyDump(handler BodyDumpHandler) gin.HandlerFunc {
 	}
 
 	return func(c *gin.Context) {
-		var reqBody []byte
-		if cb, ok := c.Get(gin.BodyBytesKey); ok {
-			if cbb, ok := cb.([]byte); ok {
-				reqBody = cbb
-			}
+		reqBody, err := ReqBodyFrom(c)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
-		if reqBody == nil {
-			body, err := ioutil.ReadAll(c.Request.Body)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-			c.Set(gin.BodyBytesKey, body)
-			reqBody = body
-		}
+
 		bdw := &bodyDumpResponseWriter{
 			ResponseWriter: c.Writer,
 			ResBody:        bytes.NewBuffer([]byte{}),
@@ -42,6 +33,24 @@ func BodyDump(handler BodyDumpHandler) gin.HandlerFunc {
 		c.Next()
 		handler(c, reqBody, bdw.ResBody.Bytes())
 	}
+}
+
+func ReqBodyFrom(c *gin.Context) ([]byte, error) {
+	var reqBody []byte
+	if cb, ok := c.Get(gin.BodyBytesKey); ok {
+		if cbb, ok := cb.([]byte); ok {
+			reqBody = cbb
+		}
+	}
+	if reqBody == nil {
+		body, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			return nil, err
+		}
+		c.Set(gin.BodyBytesKey, body)
+		reqBody = body
+	}
+	return reqBody, nil
 }
 
 func (w *bodyDumpResponseWriter) Write(b []byte) (int, error) {

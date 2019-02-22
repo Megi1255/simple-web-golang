@@ -1,10 +1,11 @@
 package controller
 
 import (
-	"ginsample/model"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"log"
 	"net/http"
+	"simple-web-golang/model"
 	"unicode"
 )
 
@@ -27,8 +28,10 @@ func (h *Controller) SignUp(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	ts, _ := TsFrom(c)
 	cac, _ := CacheFrom(c)
 	db, _ := DBFrom(c)
+	logg, _ := LoggerFrom(c)
 
 	b, err := model.UserExist(db, cac, req.Email)
 	if err != nil {
@@ -45,8 +48,11 @@ func (h *Controller) SignUp(c *gin.Context) {
 	}
 
 	u := model.User{
-		Name:  req.Name,
-		Email: req.Email,
+		Name:      req.Name,
+		Email:     req.Email,
+		Created:   ts.Unix(),
+		Updated:   ts.Unix(),
+		LastLogin: ts.Unix(),
 	}
 	if _, err := u.Insert(db, req.Password); err != nil {
 		res.Result = 500
@@ -59,6 +65,9 @@ func (h *Controller) SignUp(c *gin.Context) {
 		res.Error = err.Error()
 		c.JSON(http.StatusOK, res)
 		return
+	}
+	if err := logg.Log("user.created", res.User, ts); err != nil {
+		log.Printf("post to fluentd failed %s", err)
 	}
 
 	c.JSON(http.StatusOK, res)

@@ -1,4 +1,23 @@
 debug: true
 port: 1323
-StoreType: rdb
+db:
+  host: 127.0.0.1
+  port: 3306
+  dbname: gin
+  user: user
+  passwd: password
+cache:
+  host: 127.0.0.1
+  port: 6379
+  prefix: "game::"
+  db: 0
+  expire: 60
+log:
+  host: 127.0.0.1
+  port: 24224
+  bufferlength: 1000
+  maxconntrial: 1
+  conntimeout: 2s
+  flushtimeout: 500ms
+
 

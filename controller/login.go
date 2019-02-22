@@ -1,10 +1,11 @@
 package controller
 
 import (
-	"ginsample/model"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"log"
 	"net/http"
+	"simple-web-golang/model"
 )
 
 type LoginRequest struct {
@@ -28,6 +29,7 @@ func (h *Controller) Login(c *gin.Context) {
 	ts, _ := TsFrom(c)
 	cac, _ := CacheFrom(c)
 	db, _ := DBFrom(c)
+	logg, _ := LoggerFrom(c)
 
 	var u model.User
 	var err error
@@ -43,7 +45,8 @@ func (h *Controller) Login(c *gin.Context) {
 		c.JSON(http.StatusOK, res)
 		return
 	}
-	u.LastLogin = ts
+	u.LastLogin = ts.Unix()
+	u.Updated = ts.Unix()
 	if _, err := u.Update(db, cac); err != nil {
 		res.Result = 500
 		res.Error = err.Error()
@@ -52,6 +55,9 @@ func (h *Controller) Login(c *gin.Context) {
 	}
 	res.Result = 200
 	res.User = u
+	if err := logg.Log("user.login", res.User, ts); err != nil {
+		log.Printf("post to fluentd failed %s", err)
+	}
 
 	c.JSON(http.StatusOK, res)
 	return

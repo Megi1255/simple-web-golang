@@ -1,7 +1,7 @@
 package main
 
 import (
-	"ginsample/service"
+	"simple-web-golang/service"
 )
 
 func main() {

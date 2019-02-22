@@ -1,10 +1,10 @@
 package config
 
 import (
-	"ginsample/cache"
-	"ginsample/log"
-	"ginsample/storage"
 	"github.com/spf13/viper"
+	"simple-web-golang/cache"
+	"simple-web-golang/log"
+	"simple-web-golang/storage"
 )
 
 const (
@@ -16,7 +16,7 @@ type Config struct {
 	Debug     bool
 	Port      int
 	Db        *storage.Config
-	Redis     *cache.Config
+	Cache     *cache.Config
 	Logger    *log.Config
 	StoreType string
 }
@@ -26,9 +26,8 @@ func Load(content string) (*Config, error) {
 	viper.SetDefault("port", ServerPort)
 	viper.SetDefault("debug", ServerModeDebug)
 	viper.SetDefault("db", storage.DefaultConfig())
-	viper.SetDefault("redis", cache.DefaultConfig())
+	viper.SetDefault("cache", cache.DefaultConfig())
 	viper.SetDefault("logger", log.DefaultConfig())
-	viper.SetDefault("storetype", StoreTypeInMem)
 
 	var err error
 	viper.SetConfigName(content)

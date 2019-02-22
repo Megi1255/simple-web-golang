@@ -3,25 +3,39 @@ package model
 import (
 	"database/sql"
 	"encoding/json"
-	"ginsample/cache"
+	"simple-web-golang/cache"
 	"strconv"
-	"time"
 )
 
 const (
 	CacheKeyUser = "ginsample::user::"
 )
 
+//go:generate msgp
+
 type User struct {
-	UserId    int64     `json:"user_id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Salt      string    `json:"-"`
-	Salted    string    `json:"-"`
-	Created   time.Time `json:"created"`
-	Updated   time.Time `json:"updated"`
-	LastLogin time.Time `json:"last_login"`
+	UserId    int64  `json:"user_id" msg:"user_id"`
+	Name      string `json:"name" msg:"name"`
+	Email     string `json:"email" msg:"email"`
+	Salt      string `json:"-" msg:"-"`
+	Salted    string `json:"-" msg:"-"`
+	Created   int64  `json:"created" msg:"created"`
+	Updated   int64  `json:"updated" msg:"updated"`
+	LastLogin int64  `json:"last_login" msg:"last_login"`
 }
+
+/*
+type User struct {
+	UserId    int64     `msg:"user_id"`
+	Name      string    `msg:"name"`
+	Email     string    `msg:"email"`
+	Salt      string
+	Salted    string
+	Created   time.Time `msg:"created"`
+	Updated   time.Time `msg:"updated"`
+	LastLogin time.Time `msg:"last_login"`
+}
+*/
 
 func (u *User) MarshalBinary() ([]byte, error) {
 	return json.Marshal(u)
@@ -137,26 +151,26 @@ func UserExist(db *sql.DB, cac cache.Cache, email string) (bool, error) {
 func (u *User) Insert(db *sql.DB, password string) (sql.Result, error) {
 	stmt, err := db.Prepare(`
         insert into user (name, email, salt, salted, created, updated, last_login)
-        values(?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        values(?, ?, ?, ?, ?, ?, ?)
     `)
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 	salt := Salt(100)
-	return stmt.Exec(u.Name, u.Email, salt, Stretch(password, salt))
+	return stmt.Exec(u.Name, u.Email, salt, Stretch(password, salt), u.Created, u.Updated, u.LastLogin)
 }
 
 func (u *User) Update(db *sql.DB, cac cache.Cache) (ret sql.Result, err error) {
 	stmt, err := db.Prepare(`
-        update user set name = ?, email = ?, updated = CURRENT_TIMESTAMP, last_login = ? 
+        update user set name = ?, email = ?, updated = ?, last_login = ? 
         where user_id = ?
     `)
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
-	ret, err = stmt.Exec(u.Name, u.Email, u.LastLogin, u.UserId)
+	ret, err = stmt.Exec(u.Name, u.Email, u.Updated, u.LastLogin, u.UserId)
 	if err != nil && cac != nil {
 		err = cac.Set(CacheKeyUser+strconv.FormatInt(u.UserId, 10), &u)
 		err = cac.Set(CacheKeyUser+u.Email, &u)
