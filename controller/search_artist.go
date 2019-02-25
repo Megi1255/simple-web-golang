@@ -9,20 +9,27 @@ import (
 	"simple-web-golang/util"
 )
 
-type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
+type SearchArtistRequest struct {
+	Name   string `json:"name"`
+	Alias  string `json:"alias"`
+	Area   string `json:"area"`
+	Tags   string `json:"tags"`
+	Offset int    `json:"offset"`
+	Sort   string `json:"sort"`
+	SortBy string `json:"sort_by"`
 }
 
-type LoginResponse struct {
-	Result int        `json:"result"`
-	Error  string     `json:"error"`
-	User   model.User `json:"user"`
+type SearchArtistResponse struct {
+	Code    int            `json:"code"`
+	Error   string         `json:"error"`
+	Total   int            `json:"total"`
+	Offset  int            `json:"offset"`
+	Artists []model.Artist `json:"artists"`
 }
 
-func (h *Controller) Login(c *gin.Context) {
-	var req LoginRequest
-	var res LoginResponse
+func (h *Controller) SearchArtist(c *gin.Context) {
+	var req SearchArtistRequest
+	var res SearchArtistResponse
 	if err := c.ShouldBindBodyWith(&req, binding.JSON); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"simple-web-golang/config"
 	"simple-web-golang/controller"
+	"simple-web-golang/util"
 	"time"
 )
 
@@ -32,8 +33,8 @@ func New(cname string) *App {
 func (a *App) Run() {
 	var r *gin.Engine
 	r = gin.New()
-	r.Use(controller.Setup(a.Config))
-	r.Use(BodyDump(controller.WriteBodyLog))
+	r.Use(Setup(a.Config))
+	r.Use(BodyDump(WriteBodyLog))
 	r.POST("/", RootHandler)
 	r.POST("/gateway", Gateway)
 	log.Fatal(r.Run(fmt.Sprintf(":%d", a.Config.Port)))
@@ -66,8 +67,8 @@ func Gateway(c *gin.Context) {
 	}
 
 	elapsed := time.Since(start)
-	logg, _ := controller.LoggerFrom(c)
-	ts, _ := controller.TsFrom(c)
+	logg, _ := util.LoggerFrom(c)
+	ts, _ := util.TsFrom(c)
 	logg.Log("performance."+req.ApiName, map[string]interface{}{
 		"api_name": req.ApiName,
 		"time":     elapsed.Nanoseconds(),

@@ -10,6 +10,13 @@ import (
 const (
 	ServerModeDebug = true
 	ServerPort      = 1323
+
+	KeyPrefix    = "ginsample::"
+	KeyConfig    = KeyPrefix + "config"
+	KeyStorage   = KeyPrefix + "storage"
+	KeyCache     = KeyPrefix + "cache"
+	KeyLogger    = KeyPrefix + "logger"
+	KeyTimestamp = KeyPrefix + "timestamp"
 )
 
 type Config struct {

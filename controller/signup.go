@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"simple-web-golang/model"
+	"simple-web-golang/util"
 	"unicode"
 )
 
@@ -28,10 +29,10 @@ func (h *Controller) SignUp(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	ts, _ := TsFrom(c)
-	cac, _ := CacheFrom(c)
-	db, _ := DBFrom(c)
-	logg, _ := LoggerFrom(c)
+	ts, _ := util.TsFrom(c)
+	cac, _ := util.CacheFrom(c)
+	db, _ := util.DBFrom(c)
+	logg, _ := util.LoggerFrom(c)
 
 	b, err := model.UserExist(db, cac, req.Email)
 	if err != nil {
