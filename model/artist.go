@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"go.mongodb.org/mongo-driver/bson"
-	"simple-web-golang/util"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"simple-web-golang/config"
+	"simple-web-golang/storage"
 )
 
 type Alias struct {
@@ -12,33 +14,34 @@ type Alias struct {
 	SortName string `json:"sort_name"`
 }
 
-type Date struct {
-	Year  int `json:"year"`
-	Month int `json:"month"`
-	Date  int `json:"date"`
-}
-
 type Tag struct {
 	Count int    `json:"count"`
-	Value string `json:"value"`
+	Name  string `json:"name"`
 }
 
 type Rate struct {
-	Count int `json:"count"`
-	Value int `json:"value"`
+	VotesCount int     `json:"votes-count"`
+	Value      float32 `json:"value"`
+}
+
+type LifeSpan struct {
+	Begin string `json:"begin"`
+	End   string `json:"end"`
+	Ended bool   `json:"ended"`
 }
 
 type Artist struct {
-	Id       int64   `json:"id"`
-	Gid      string  `json:"gid"`
-	Name     string  `json:"name"`
-	SortName string  `json:"sort_name"`
-	Area     string  `json:"area"`
-	Aliases  []Alias `json:"aliases"`
-	Begin    Date    `json:"begin"`
-	End      Date    `json:"begin"`
-	Tags     []Tag   `json:"tags"`
-	Rating   Rate    `json:"rating"`
+	Id       string   `json:"id"`
+	Name     string   `json:"name"`
+	Gender   string   `json:"gender"`
+	SortName string   `json:"sort-name"`
+	Area     string   `json:"area"`
+	Type     string   `json:"type"`
+	Country  string   `json:"country"`
+	Aliases  []Alias  `json:"aliases"`
+	LifeSpan LifeSpan `json:"life-span"`
+	Tags     []Tag    `json:"tags"`
+	Rating   Rate     `json:"rating"`
 }
 
 func (a *Artist) Pretty() string {
@@ -49,19 +52,13 @@ func (a *Artist) Pretty() string {
 	return string(b)
 }
 
-func ArtistsByName(ctx context.Context, name string) ([]Artist, error) {
+func FindArtists(ctx context.Context, filter bson.D, opts ...*options.FindOptions) ([]Artist, error) {
 	ret := make([]Artist, 0)
-	cfg, err := util.ConfFrom(ctx)
-	if err != nil {
-		return ret, err
-	}
-	cli, err := util.MongoFrom(ctx)
-	if err != nil {
-		return ret, err
-	}
+	cfg := config.FromContext(ctx)
+	cli := storage.FromContext(ctx)
 
 	coll := cli.Database(cfg.Db.DbName).Collection("artists")
-	result, err := coll.Find(ctx, bson.D{{"name", name}})
+	result, err := coll.Find(ctx, filter, opts...)
 	if err != nil {
 		return ret, err
 	}
@@ -75,4 +72,47 @@ func ArtistsByName(ctx context.Context, name string) ([]Artist, error) {
 	}
 
 	return ret, nil
+}
+
+func ArtistsByName(ctx context.Context, name string, limit int64, sort string, order int) ([]Artist, error) {
+	opt := options.Find().SetLimit(limit)
+	if sort != "" {
+		opt.SetSort(bson.D{{sort, order}})
+	}
+	return FindArtists(
+		ctx,
+		//bson.D{{"name", bson.D{{"$regex", "^"+name+"$"}, {"$options", "i"}}}},
+		bson.D{{"name", name}},
+		opt,
+	)
+}
+
+func ArtistsByArea(ctx context.Context, area string, offset int64, limit int64, sort string, order int) ([]Artist, error) {
+	opt := options.Find().SetSkip(offset).SetLimit(limit)
+	if sort != "" {
+		opt.SetSort(bson.D{{sort, order}})
+	}
+	return FindArtists(
+		ctx,
+		bson.D{{"area", area}},
+		opt,
+	)
+}
+
+func ArtistByTag(ctx context.Context, tag string, offset int64, limit int64, sort string, order int) ([]Artist, error) {
+	opt := options.Find().SetSkip(offset).SetLimit(limit)
+	if sort != "" {
+		opt.SetSort(bson.D{{sort, order}})
+	}
+	return FindArtists(
+		ctx,
+		bson.D{
+			{"tags", bson.D{
+				{"$elemMatch", bson.D{
+					{"value", tag},
+				}},
+			}},
+		},
+		opt,
+	)
 }

@@ -1,4 +1,4 @@
-package storage
+package config
 
 const (
 	DefaultRdbHost     = "127.0.0.1"
@@ -11,7 +11,7 @@ const (
 	TbNameGiftBox = "GIFTBOX"
 )
 
-type Config struct {
+type StorageConfig struct {
 	Host   string
 	Port   int
 	DbName string
@@ -19,8 +19,8 @@ type Config struct {
 	Passwd string
 }
 
-func DefaultConfig() *Config {
-	return &Config{
+func StorageDefaultConfig() *StorageConfig {
+	return &StorageConfig{
 		Host:   DefaultRdbHost,
 		Port:   DefaultRdbPort,
 		DbName: DefaultRdbDatabase,

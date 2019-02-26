@@ -58,7 +58,7 @@ func main() {
 	flag.Parse()
 
 	client := NewMongoClient("mongodb://localhost:27017")
-	coll := client.Database("test").Collection("artists")
+	coll := client.Database("new").Collection("artists")
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 
 	result, err := coll.Find(ctx, bson.D{{"name", *name}})

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"simple-web-golang/config"
 	"time"
 )
 
@@ -11,7 +12,7 @@ type MyLogger struct {
 	Logger *log.Logger
 }
 
-func NewMyLogger(cfg *Config) *MyLogger {
+func NewMyLogger(cfg *config.LoggerConfig) *MyLogger {
 	return &MyLogger{
 		Logger: log.New(os.Stdout, "", log.Ldate|log.Ltime),
 	}

@@ -1,4 +1,4 @@
-package cache
+package config
 
 import (
 	"errors"
@@ -18,18 +18,7 @@ var (
 	ErrCacheMissingKey  = errors.New("cache missing key")
 )
 
-type Cache interface {
-	Set(key string, value interface{}) error
-	Get(key string) (interface{}, error)
-	Exists(key string) (bool, error)
-	UpdateRank(key string, point int, uid int64) error
-	Rank(key string, uid int64) (int64, error)
-	Flush() error
-	SetMap(key string, value map[string]interface{}) error
-	GetMap(key string) (map[string]interface{}, error)
-}
-
-type Config struct {
+type CacheConfig struct {
 	Host   string
 	Port   int
 	Db     int
@@ -37,8 +26,8 @@ type Config struct {
 	Prefix string
 }
 
-func DefaultConfig() *Config {
-	return &Config{
+func CacheDefaultConfig() *CacheConfig {
+	return &CacheConfig{
 		Host:   DefaultRedisHost,
 		Port:   DefaultRedisPort,
 		Prefix: DefaultRedisKeyPrefix,

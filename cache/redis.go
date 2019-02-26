@@ -1,18 +1,36 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-redis/redis"
 	"log"
+	"simple-web-golang/config"
 	"time"
 )
 
-type Redis struct {
-	Cli  *redis.Client
-	Conf *Config
+type Cache interface {
+	Set(key string, value interface{}) error
+	Get(key string) (interface{}, error)
+	Exists(key string) (bool, error)
+	UpdateRank(key string, point int, uid int64) error
+	Rank(key string, uid int64) (int64, error)
+	Flush() error
+	SetMap(key string, value map[string]interface{}) error
+	GetMap(key string) (map[string]interface{}, error)
 }
 
-func New(c *Config) *Redis {
+func FromContext(c context.Context) Cache {
+	val := c.Value(config.KeyCache)
+	return val.(Cache)
+}
+
+type Redis struct {
+	Cli  *redis.Client
+	Conf *config.CacheConfig
+}
+
+func New(c *config.CacheConfig) *Redis {
 	cli := redis.NewClient(&redis.Options{
 		Addr: fmt.Sprintf("%s:%d", c.Host, c.Port),
 		DB:   c.Db,
@@ -72,7 +90,7 @@ func (r *Redis) GetMap(key string) (map[string]interface{}, error) {
 		return nil, err
 	}
 	if len(ret) == 0 {
-		return nil, ErrCacheMissingKey
+		return nil, config.ErrCacheMissingKey
 	}
 	for key, val := range get {
 		ret[key] = val

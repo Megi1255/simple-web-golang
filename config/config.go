@@ -1,10 +1,8 @@
 package config
 
 import (
+	"context"
 	"github.com/spf13/viper"
-	"simple-web-golang/cache"
-	"simple-web-golang/log"
-	"simple-web-golang/storage"
 )
 
 const (
@@ -12,19 +10,24 @@ const (
 	ServerPort      = 1323
 
 	KeyPrefix    = "ginsample::"
+	KeyRequest   = KeyPrefix + "request"
 	KeyConfig    = KeyPrefix + "config"
 	KeyStorage   = KeyPrefix + "storage"
 	KeyCache     = KeyPrefix + "cache"
 	KeyLogger    = KeyPrefix + "logger"
+	KeyProfiler  = KeyPrefix + "profiler"
 	KeyTimestamp = KeyPrefix + "timestamp"
+
+	CODE_OK       = 200
+	CODE_DB_ERROR = 500
 )
 
 type Config struct {
 	Debug     bool
 	Port      int
-	Db        *storage.Config
-	Cache     *cache.Config
-	Logger    *log.Config
+	Db        *StorageConfig
+	Cache     *CacheConfig
+	Logger    *LoggerConfig
 	StoreType string
 }
 
@@ -32,9 +35,9 @@ func Load(content string) (*Config, error) {
 	config := &Config{}
 	viper.SetDefault("port", ServerPort)
 	viper.SetDefault("debug", ServerModeDebug)
-	viper.SetDefault("db", storage.DefaultConfig())
-	viper.SetDefault("cache", cache.DefaultConfig())
-	viper.SetDefault("logger", log.DefaultConfig())
+	viper.SetDefault("db", StorageDefaultConfig())
+	viper.SetDefault("cache", CacheDefaultConfig())
+	viper.SetDefault("logger", LoggerDefaultConfig())
 
 	var err error
 	viper.SetConfigName(content)
@@ -50,4 +53,9 @@ func Load(content string) (*Config, error) {
 	}
 
 	return config, nil
+}
+
+func FromContext(c context.Context) *Config {
+	val := c.Value(KeyConfig)
+	return val.(*Config)
 }

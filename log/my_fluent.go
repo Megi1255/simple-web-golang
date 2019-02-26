@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"simple-web-golang/config"
 	"time"
 )
 
 type FluentdClient struct {
-	config  *Config
+	config  *config.LoggerConfig
 	conn    net.Conn
 	ticker  *time.Ticker
 	msgChan chan Message
@@ -28,7 +29,7 @@ func (m *Message) ToMsgpack() ([]byte, error) {
 	return []byte(fmt.Sprintf("[\"%s\",%d,%s,null]", m.Tag, m.Time, record)), err
 }
 
-func NewFluentdClient(c *Config) *FluentdClient {
+func NewFluentdClient(c *config.LoggerConfig) *FluentdClient {
 	if c == nil {
 		return nil
 	}

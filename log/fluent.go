@@ -1,14 +1,25 @@
 package log
 
 import (
+	"context"
 	"errors"
 	"github.com/fluent/fluent-logger-golang/fluent"
 	"log"
+	"simple-web-golang/config"
 	"time"
 )
 
+type Logger interface {
+	Log(tag string, msg interface{}, time time.Time) error
+}
+
+func FromContext(c context.Context) Logger {
+	val := c.Value(config.KeyLogger)
+	return val.(Logger)
+}
+
 type Fluent struct {
-	conf     *Config
+	conf     *config.LoggerConfig
 	fluent   *fluent.Fluent
 	IsEnable bool
 }
@@ -17,7 +28,7 @@ var (
 	ErrNotAvailable = errors.New("[fluent] not available")
 )
 
-func New(cfg *Config) *Fluent {
+func New(cfg *config.LoggerConfig) *Fluent {
 	logger, err := fluent.New(fluent.Config{
 		FluentPort:  cfg.Port,
 		FluentHost:  cfg.Host,

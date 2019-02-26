@@ -1,4 +1,4 @@
-package log
+package config
 
 import "time"
 
@@ -12,11 +12,7 @@ const (
 	DefaultTagPrefix    = ""
 )
 
-type Logger interface {
-	Log(tag string, msg interface{}, time time.Time) error
-}
-
-type Config struct {
+type LoggerConfig struct {
 	Host         string
 	Port         int
 	BufferLength int
@@ -26,8 +22,8 @@ type Config struct {
 	TagPrefix    string
 }
 
-func DefaultConfig() *Config {
-	return &Config{
+func LoggerDefaultConfig() *LoggerConfig {
+	return &LoggerConfig{
 		Host:         DefaultHost,
 		Port:         DefaultPort,
 		BufferLength: DefaultBufferLength,

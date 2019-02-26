@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"compress/gzip"
+	_ "compress/gzip"
 	"context"
 	"encoding/json"
 	"flag"
@@ -16,6 +16,7 @@ import (
 	"time"
 )
 
+/*
 type Alias struct {
 	Name     string `json:"name"`
 	SortName string `json:"sort_name"`
@@ -37,6 +38,7 @@ type Rate struct {
 	Value int `json:"value"`
 }
 
+
 type Artist struct {
 	Id       int64   `json:"id"`
 	Gid      string  `json:"gid"`
@@ -48,20 +50,72 @@ type Artist struct {
 	Tags     []Tag   `json:"tags"`
 	Rating   Rate    `json:"rating"`
 }
+*/
+
+type Alias struct {
+	Name     string `json:"name"`
+	SortName string `json:"sort_name"`
+}
+
+type Tag struct {
+	Count int    `json:"count"`
+	Name  string `json:"name"`
+}
+
+type Rate struct {
+	VotesCount int     `json:"votes-count"`
+	Value      float32 `json:"value"`
+}
+
+type LifeSpan struct {
+	Begin string `json:"begin"`
+	End   string `json:"end"`
+	Ended bool   `json:"ended"`
+}
+
+type ArtistRaw struct {
+	Id       string `json:"id"`
+	Name     string `json:"name"`
+	Gender   string `json:"gender"`
+	SortName string `json:"sort-name"`
+	Area     struct {
+		Name string `json:"name"`
+	} `json:"area"`
+	Type     string   `json:"type"`
+	Country  string   `json:"country"`
+	Aliases  []Alias  `json:"aliases"`
+	LifeSpan LifeSpan `json:"life-span"`
+	Tags     []Tag    `json:"tags"`
+	Rating   Rate     `json:"rating"`
+}
+
+type Artist struct {
+	Id       string   `json:"id"`
+	Name     string   `json:"name"`
+	Gender   string   `json:"gender"`
+	SortName string   `json:"sort-name"`
+	Area     string   `json:"area"`
+	Type     string   `json:"type"`
+	Country  string   `json:"country"`
+	Aliases  []Alias  `json:"aliases"`
+	LifeSpan LifeSpan `json:"life-span"`
+	Tags     []Tag    `json:"tags"`
+	Rating   Rate     `json:"rating"`
+}
 
 const (
 	keyPrefix = "artist::"
 )
 
 func main() {
-	fname := flag.String("fname", "artist.json.gz", "input file")
+	fname := flag.String("fname", "artist.json", "input file")
 	flag.Parse()
 	log.Println(*fname)
 	artists := ReadFile(*fname)
 	log.Printf("complete to read: %v records", len(artists))
 
 	client := NewMongoClient("mongodb://localhost:27017")
-	coll := client.Database("test").Collection("artists")
+	coll := client.Database("new").Collection("artists")
 	coll.Drop(context.Background())
 
 	dpc := NewDispatcher(10, func(data interface{}) error {
@@ -93,10 +147,12 @@ func main() {
 			Keys:    bsonx.Doc{{"id", bsonx.Int32(1)}},
 			Options: options.Index().SetUnique(true),
 		},
-		{
-			Keys:    bsonx.Doc{{"gid", bsonx.Int32(1)}},
-			Options: options.Index().SetUnique(true),
-		},
+		/*
+			{
+				Keys:    bsonx.Doc{{"gid", bsonx.Int32(1)}},
+				Options: options.Index().SetUnique(true),
+			},
+		*/
 		{
 			Keys: bsonx.Doc{{"name", bsonx.Int32(1)}},
 		},
@@ -121,14 +177,15 @@ func ReadFile(fname string) []Artist {
 		log.Fatalf("failed to open file: %v", err)
 	}
 	defer fp.Close()
-	gz, err := gzip.NewReader(fp)
-	if err != nil {
-		log.Fatalf("failed to open reader: %v", err)
-	}
-	defer gz.Close()
-
+	/*
+		gz, err := gzip.NewReader(fp)
+		if err != nil {
+			log.Fatalf("failed to open reader: %v", err)
+		}
+		defer gz.Close()
+	*/
 	artists := make([]Artist, 0, 100)
-	scanner := bufio.NewScanner(gz)
+	scanner := bufio.NewScanner(fp)
 	for scanner.Scan() {
 		line := scanner.Text()
 		var artist Artist
