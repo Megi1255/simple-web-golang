@@ -13,7 +13,7 @@ type bodyDumpResponseWriter struct {
 	ResBody *bytes.Buffer
 }
 
-func BodyDump(handler BodyDumpHandler) gin.HandlerFunc {
+func (ctl *Controller) BodyDump(handler BodyDumpHandler) gin.HandlerFunc {
 	if handler == nil {
 		panic("bodydump handler required")
 	}
